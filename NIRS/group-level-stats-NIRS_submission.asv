@@ -1,0 +1,255 @@
+%% GROUP-LEVEL ANALYSIS AFTER SUBJECT GLM
+
+clear; clc;
+
+%% Paths
+toolbox_path = '/Users/.../nirs-toolbox-master';
+addpath(genpath(toolbox_path));
+
+path_analysis = '/Users/.../analysis2_outcome_NIRS';
+addpath(genpath(path_analysis));
+cd(path_analysis)
+
+%% ---------------------------------
+%% 1. LOAD SUBJECT GLM RESULTS
+%% ---------------------------------
+
+% Choose model
+model_file = 'Subj_stats_canonical.mat';   
+% alternative: 'Subj_stats10_canonical.mat'
+
+data = load(model_file);
+SubjStats = data.SubjStats;
+
+%% ---------------------------------
+%% 2. LOAD SUBJECT METADATA
+%% ---------------------------------
+
+files_all = load('files_all.mat');
+files_all = files_all.files_all;
+
+gr_all = load('gr_all.mat');
+gr_all = gr_all.gr_all;
+
+%% ---------------------------------
+%% 3. ADD DEMOGRAPHICS
+%% ---------------------------------
+
+for s = 1:length(SubjStats)
+
+    SubjStats(s).demographics('subject') = files_all{s};
+    SubjStats(s).demographics('group')   = gr_all(s) + 1;
+
+end
+
+%% ---------------------------------
+%% 4. CREATE DEMOGRAPHICS TABLE
+%% ---------------------------------
+
+demographics_table = nirs.createDemographicsTable(SubjStats);
+save('demographics_NIRS.mat','demographics_table')
+
+%% ---------------------------------
+%% 5. GROUP-LEVEL MIXED EFFECTS MODEL
+%% ---------------------------------
+
+job = nirs.modules.MixedEffects;
+
+job.formula = 'beta ~ -1 + group*cond + (1|subject)';
+job.include_diagnostics = true;
+job.dummyCoding = 'reference';
+
+GroupStats = job.run(SubjStats);
+
+RUN GROUP-LEVEL MIXED EFFECTS MODEL
+% ------------------------------------------------------------
+% A mixed-effects model is applied to test:
+%   - main effect of group
+%   - main effect of condition
+%   - group × condition interaction
+%
+% Random intercepts are included for each participant.
+% ============================================================
+
+job = nirs.modules.MixedEffects;
+
+job.formula = 'beta ~ -1 + group*cond + (1|subject)';
+
+% Include model diagnostics
+job.include_diagnostics = true;
+
+% Use reference dummy coding
+job.dummyCoding = 'reference';
+
+% Run model
+GroupStats_analysis = job.run(SubjStats_deconv);
+
+% Save results
+save('GroupStats_analysis_groupcond.mat','GroupStats_analysis','-v7.3');
+
+
+%% ============================================================
+% 6. VISUALIZE GROUP-LEVEL STATISTICAL RESULTS
+% ------------------------------------------------------------
+% Display significant brain activation using statistical maps.
+% ============================================================
+
+GroupStats = GroupStats_analysis;
+
+% Visualize right hemisphere
+GroupStats.probe.defaultdrawfcn = '3D mesh (right)';
+GroupStats.probe.SetFiducialsVisibility(false);
+
+jointTestResults = GroupStats.jointTest();
+jointTestResults.draw(10,'q<0.05');
+
+% Visualize left hemisphere
+GroupStats.probe.defaultdrawfcn = '3D mesh (left)';
+GroupStats.probe.SetFiducialsVisibility(false);
+
+jointTestResults = GroupStats.jointTest();
+jointTestResults.draw(10,'q<0.05');
+
+
+%% ============================================================
+% 7. EXPORT GROUP-LEVEL STATISTICS
+% ------------------------------------------------------------
+% Save the statistical table containing beta values,
+% t-statistics, p-values, and FDR-corrected q-values.
+% ============================================================
+
+cd(final_outcome_2_NIRS)
+
+writetable(GroupStats.table,'group_NIRS.xlsx');
+
+
+%% ============================================================
+% 8. SAVE STATISTICAL BRAIN MAPS
+% ------------------------------------------------------------
+% Export figures showing significant activation patterns.
+% ============================================================
+
+% Uncorrected significance
+figures = GroupStats.draw('tstat',[], 'p<0.05');
+
+for i = 1:length(figures)
+    saveas(figures(i),['group_stats_' num2str(i) '.png'])
+end
+
+% FDR corrected significance
+figures = GroupStats.draw('tstat',[], 'q<0.05');
+
+for i = 1:length(figures)
+    saveas(figures(i),['QFDR_group_stats_' num2str(i) '.png'])
+end
+
+
+%% ============================================================
+% 9. EXTRACT BETA VALUES FOR GROUP COMPARISON
+% ------------------------------------------------------------
+% Extract beta values from a selected channel and compare
+% young vs older participants across experimental conditions.
+% ============================================================
+
+demographics_analysis_1 = load('demographics_analysis_1.mat');
+demographics_analysis_1 = demographics_analysis_1.demographics_analysis_1;
+
+% Identify older participants
+idx_old = find(contains(demographics_analysis_1.subject,'BBOLD'));
+
+% Channel to analyze
+chan = 33;
+
+title_fig = 's7d7';
+
+%% Young participants
+
+a = nan(idx_old(1)-1,3);
+
+for i = 1:idx_old(1)-1
+
+    a(i,1) = SubjStats_deconv(i).beta(chan);
+    a(i,2) = SubjStats_deconv(i).beta(chan+80);
+    a(i,3) = SubjStats_deconv(i).beta(chan+160);
+
+end
+
+%% Older participants
+
+b = nan(length(idx_old),3);
+
+for i = idx_old(1):idx_old(end)
+
+    b(i-idx_old(1)+1,1) = SubjStats_deconv(i).beta(chan);
+    b(i-idx_old(1)+1,2) = SubjStats_deconv(i).beta(chan+80);
+    b(i-idx_old(1)+1,3) = SubjStats_deconv(i).beta(chan+160);
+
+end
+
+
+%% ============================================================
+% 10. PLOT BETA VALUES
+% ------------------------------------------------------------
+% Create boxplots comparing conditions between groups.
+% ============================================================
+
+f = figure;
+
+subplot(1,2,1)
+
+boxplot([a(:,1),a(:,2)])
+hold on
+
+plot([a(:,1),a(:,2)]','.-','color',[0.8 0.8 0.8],'MarkerSize',15)
+
+xticklabels({'AV-young','AVD-young'})
+ylabel('Beta value')
+title(title_fig)
+
+subplot(1,2,2)
+
+boxplot([b(:,1),b(:,2)])
+hold on
+
+plot([b(:,1),b(:,2)]','.-','color',[0.8 0.8 0.8],'MarkerSize',15)
+
+xticklabels({'AV-old','AVD-old'})
+
+
+%% ============================================================
+% 11. SAVE FIGURE
+% ============================================================
+
+set(gcf,'PaperUnits','inches')
+
+x_width = 9;
+y_width = 4;
+
+set(gcf,'PaperPosition',[0 0 x_width y_width])
+
+saveas(gcf,[final_outcome_2_NIRS '/' title_fig '.png'])
+
+
+%% ============================================================
+% 13. EXPORT CHANNEL DATA FOR R ANALYSIS
+% ------------------------------------------------------------
+% Export beta values so they can be analyzed or plotted
+% using statistical software such as R.
+% ============================================================
+
+ch_s4d4_19 = [a(:,1),b(:,1),a(:,2),b(:,2),a(:,3),b(:,3)];
+
+csvwrite('ch_s4d4_19.csv',ch_s4d4_19);
+
+
+%% ============================================================
+% 14. TEST SPECIFIC CONTRASTS
+% ------------------------------------------------------------
+% Define and test custom contrasts between model parameters.
+% ============================================================
+
+contrast_1 = [0 1 0 -1 0];
+
+tt = GroupStats.ttest(contrast_1);
+
+tt.draw('tstat',[], 'p<0.05');
