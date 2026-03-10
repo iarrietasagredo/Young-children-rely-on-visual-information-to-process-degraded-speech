@@ -1,56 +1,57 @@
-File Structure
-EyeTracking/
--processing_ET.R         # Main ET data processing scripts
--statistics_ET.R         # Cleaned analysis script with LMER and plots
-Blablacara_NIRS/
--pre-processing_NIRS_submission.m         # Preprocessing & epoch extraction
--grouping_quantifying-nirs_submission.m   # Subject-level GLM (FIR and canonical)
--group-level-stats-NIRS_submission.m          # Group-level mixed-effects modeling
-README.md                     # Documentation (this file)
 
-For Eye-Tracking signal processing, I include scripts for processing, analyzing, and visualizing eye-tracking (ET) data collected in the Blablacara study, which investigates visual attention to the mouth versus eyes in different age groups (Young/Infants and Old/Toddlers) under various speech intelligibility conditions (AV, AVdeg, V).
+---
 
-The workflow includes:
+## Eye-Tracking (ET) Signal Processing
 
-Data Import and Cleaning
+This folder contains scripts for processing, analyzing, and visualizing eye-tracking (ET) data collected in the **Blablacara study**, which investigates visual attention to the **mouth vs. eyes** in different age groups (Young/Infants and Old/Toddlers) under various speech intelligibility conditions (**AV, AVdeg, V**).
 
-Trial and Participant Exclusion
+### Workflow
 
-EyetrackingR Data Processing
+1. **Data Import and Cleaning**  
+2. **Trial and Participant Exclusion**  
+3. **EyetrackingR Data Processing**  
+4. **PTLT Calculation** (Proportion of Looking to the Mouth over Eyes)  
+5. **Statistical Analysis** (LMER + Post-hoc tests)  
+6. **Data Visualization**  
+7. **Export of Cleaned Data and Results**
 
-PTLT (Proportion of Looking to the Mouth over Eyes) Calculation
+---
 
-Statistical Analysis (LMER + Post-hoc tests)
+## NIRS Signal Processing
 
-Data Visualization
+This folder contains scripts for preprocessing, analyzing, and visualizing **functional near-infrared spectroscopy (fNIRS)** data from the Blablacara study, investigating brain responses to audiovisual speech stimuli in **Young vs. Old participants**.
 
-Export of Cleaned Data and Results
+### Workflow
 
+1. **Preprocessing NIRS signals**  
+   - Quality assessment (QT module)  
+   - Motion correction  
+   - Filtering (low-pass and high-pass)  
 
-For NIRS signal processing, This repository contains scripts for preprocessing, analyzing, and visualizing functional near-infrared spectroscopy (fNIRS) data from the Blablacara study, which investigates brain responses to audiovisual speech stimuli in different age groups (Young vs. Old participants).
+2. **Epoch extraction** aligned to stimulus onset  
+3. **Subject-level GLM modeling**  
+   - FIR basis for time-resolved response  
+   - Canonical HRF basis for beta values per condition  
 
-The workflow covers:
+4. **Group-level analysis** using mixed-effects modeling  
+5. **Visualization** of activation patterns and statistical results  
+6. **Exporting beta values** and statistical outputs for further analysis
 
-Preprocessing NIRS signals (quality assessment, motion correction, filtering).
+---
 
-Epoch extraction aligned to stimulus onset.
+## Required MATLAB Toolboxes & Paths
 
-Subject-level GLM modeling (FIR and canonical HRF).
+- **NIRS Toolbox:** `nirs-toolbox-master`  
+- **NIRS GUI:** `NIRS-GUI-master`  
+- **BrainWavelet:** `BrainWavelet`  
+- **QT for NIRS:** `qt-nirs-master`  
 
-Group-level analysis using mixed-effects modeling.
+> Make sure to add each path to MATLAB using `addpath(genpath(...))` before running the scripts.
 
-Visualization of activation patterns and statistical results.
+---
 
-Exporting beta values and statistical outputs for further analysis.
+## Notes
 
-Required MATLAB Toolboxes & Paths
-
-NIRS Toolbox: nirs-toolbox-master
-
-NIRS GUI: NIRS-GUI-master
-
-BrainWavelet: BrainWavelet
-
-QT for NIRS: qt-nirs-master
-
-Make sure to add each path to MATLAB using addpath(genpath(...)) before running the scripts.
+- Adjust **excluded participants** if necessary (`outYoung`, `outOld`).  
+- Epoch length, pre/post-stimulus times, and thresholds may need fine-tuning depending on the dataset.  
+- Statistical maps are thresholded at `p<0.05` and `q<0.05` (FDR-corrected).  
