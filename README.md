@@ -8,7 +8,7 @@ Blablacara_NIRS/
 -group-level-stats-NIRS_submission.m          # Group-level mixed-effects modeling
 README.md                     # Documentation (this file)
 
-For the Eye-Tracking signal processing, I include scripts for processing, analyzing, and visualizing eye-tracking (ET) data collected in the Blablacara study, which investigates visual attention to the mouth versus eyes in different age groups (Young/Infants and Old/Toddlers) under various speech intelligibility conditions (AV, AVdeg, V).
+For Eye-Tracking signal processing, I include scripts for processing, analyzing, and visualizing eye-tracking (ET) data collected in the Blablacara study, which investigates visual attention to the mouth versus eyes in different age groups (Young/Infants and Old/Toddlers) under various speech intelligibility conditions (AV, AVdeg, V).
 
 The workflow includes:
 
@@ -27,7 +27,7 @@ Data Visualization
 Export of Cleaned Data and Results
 
 
-For the NIRS signal processing, This repository contains scripts for preprocessing, analyzing, and visualizing functional near-infrared spectroscopy (fNIRS) data from the Blablacara study, which investigates brain responses to audiovisual speech stimuli in different age groups (Young vs. Old participants).
+For NIRS signal processing, This repository contains scripts for preprocessing, analyzing, and visualizing functional near-infrared spectroscopy (fNIRS) data from the Blablacara study, which investigates brain responses to audiovisual speech stimuli in different age groups (Young vs. Old participants).
 
 The workflow covers:
 
